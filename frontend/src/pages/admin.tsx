@@ -1,9 +1,6 @@
-import { useState } from "react";
 import Tabs from "@/components/ui/tabs";
 
 export default function Admin() {
-  const [selectedTab, setSelectedTab] = useState<string>("API Key's");
-
   const tabs = [
     { 
       label: "API Key's",
@@ -35,16 +32,23 @@ export default function Admin() {
   ];
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>Admin Dashboard</h1>
-
+    <div style={pageStyles.container}>
+      <h1 style={pageStyles.title}>Admin Dashboard</h1>
       <Tabs tabs={tabs} />
-
-      {/* Eventueel extra inhoud */}
-      <div style={{ marginTop: "2rem" }}>
-        {/* Als je extra content wil tonen afhankelijk van geselecteerde tab, kan je dat hier toevoegen */}
-      </div>
     </div>
   );
 }
 
+const pageStyles = {
+  container: {
+    maxWidth: "900px",
+    margin: "0 auto",
+    padding: "2rem",
+  },
+  title: {
+    textAlign: "center" as "center",
+    marginBottom: "2rem",
+    fontSize: "2rem",
+    color: "#333",
+  },
+};
