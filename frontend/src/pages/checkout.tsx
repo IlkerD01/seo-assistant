@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
-import Spinner from "@/components/Spinner";
+import Spinner from "@/components/ui/spinner";
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
