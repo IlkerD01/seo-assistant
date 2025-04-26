@@ -7,8 +7,6 @@ import stripe
 import os
 import jwt
 import datetime
-from flask import Flask
-from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
@@ -20,23 +18,26 @@ JWT_SECRET = os.getenv("JWT_SECRET", "supersecret")
 
 stripe.api_key = STRIPE_SECRET_KEY
 
+# Maak FastAPI app
 app = FastAPI()
-CORS(app)  # <== voeg deze regel toe
 
-# CORS instellen
+# CORS Middleware correct instellen
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL],
+    allow_origins=[FRONTEND_URL] if FRONTEND_URL else ["*"],  # Veiliger
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Dummy Admin credentials
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "password"
 
+# In-memory API Key database
 api_keys_db = []
 
+# Request models
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -44,6 +45,7 @@ class LoginRequest(BaseModel):
 class APIKeyRequest(BaseModel):
     api_key: str
 
+# JWT Authentication
 def authenticate(token: str = Depends(lambda: None)):
     if not token:
         raise HTTPException(status_code=401, detail="Token missing")
@@ -54,6 +56,7 @@ def authenticate(token: str = Depends(lambda: None)):
     except jwt.PyJWTError:
         raise HTTPException(status_code=403, detail="Invalid token")
 
+# Routes
 @app.get("/")
 async def root():
     return {"message": "API is running 🚀"}
@@ -122,3 +125,4 @@ async def stripe_webhook(request: Request):
         print(f"Payment successful! Session ID: {session['id']}")
 
     return {"status": "success"}
+
