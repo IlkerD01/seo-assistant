@@ -7,6 +7,7 @@ import stripe
 import os
 import jwt
 import datetime
+from flask import Flask
 from flask_cors import CORS
 
 # Load environment variables
