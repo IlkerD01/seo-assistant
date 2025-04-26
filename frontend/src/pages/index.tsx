@@ -9,17 +9,17 @@ export default function Home() {
     <Layout>
       <div className="flex flex-col items-center justify-center min-h-screen px-4">
         <h1 className="text-4xl font-bold mb-4 text-center">Welcome to SEO Assistant 🚀</h1>
+        <div className="flex justify-center mt-8">
+  <Image 
+    src="/images/seo-illustration.png" 
+    alt="SEO Tools Illustration" 
+    width={500} 
+    height={300}
+    priority
+  />
+</div>
 
-        {/* Nieuwe afbeelding */}
-        <Image
-          src="/seo-tools.png" // Zorg dat dit bestand in /public staat!
-          width={400}
-          height={300}
-          alt="SEO Tools"
-          className="mb-6"
-        />
-
-        <p className="text-lg mb-8 text-center">
+      <p className="text-lg mb-8 text-center">
           Unlock premium API features and boost your SEO performance effortlessly.
         </p>
 
