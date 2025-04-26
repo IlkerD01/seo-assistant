@@ -1,66 +1,33 @@
-import React, { useState } from "react";
-
-interface Tab {
-  label: string;
-  content: React.ReactNode;
-}
+import React from "react";
 
 interface TabsProps {
-  tabs: Tab[];
+  tabs: { label: string; content: React.ReactNode }[];
+  selectedTab: string;
+  setSelectedTab: (tab: string) => void;
 }
 
-export default function Tabs({ tabs }: TabsProps) {
-  const [activeTab, setActiveTab] = useState(0);
-
+export default function Tabs({ tabs, selectedTab, setSelectedTab }: TabsProps) {
   return (
-    <div>
-      <div style={styles.tabList}>
-        {tabs.map((tab, index) => (
+    <div className="flex flex-col">
+      <div className="flex space-x-4 border-b pb-2">
+        {tabs.map((tab) => (
           <button
-            key={index}
-            onClick={() => setActiveTab(index)}
-            style={{
-              ...styles.tabButton,
-              ...(activeTab === index ? styles.activeTabButton : {}),
-            }}
+            key={tab.label}
+            onClick={() => setSelectedTab(tab.label)}
+            className={`px-4 py-2 rounded-t ${
+              selectedTab === tab.label
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
-      <div style={styles.tabContent}>
-        {tabs[activeTab].content}
+      <div className="mt-4">
+        {tabs.find((tab) => tab.label === selectedTab)?.content}
       </div>
     </div>
   );
 }
 
-const styles = {
-  tabList: {
-    display: "flex",
-    justifyContent: "center",
-    marginBottom: "1rem",
-    borderBottom: "2px solid #ccc",
-  },
-  tabButton: {
-    padding: "10px 20px",
-    margin: "0 5px",
-    background: "none",
-    border: "none",
-    borderBottom: "2px solid transparent",
-    cursor: "pointer",
-    fontWeight: "bold" as "bold",
-    fontSize: "16px",
-    color: "#333",
-  },
-  activeTabButton: {
-    borderBottom: "2px solid #0070f3",
-    color: "#0070f3",
-  },
-  tabContent: {
-    padding: "20px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "8px",
-    minHeight: "200px",
-  },
-};
