@@ -1,4 +1,17 @@
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+body {
+  @apply bg-gray-50 text-gray-800;
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4 {
+  @apply text-gray-900;
+}
+
+button {
+  @apply transition-all duration-300 ease-in-out;
 }
