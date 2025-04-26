@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Layout from "@/components/Layout";
+import Spinner from "@/components/Spinner";
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
@@ -29,11 +31,26 @@ export default function Checkout() {
   };
 
   return (
-    <div>
-      <h1>Checkout Pagina</h1>
-      <button onClick={createCheckoutSession} disabled={loading}>
-        {loading ? "Even geduld..." : "Start Checkout"}
-      </button>
-    </div>
+    <Layout>
+      <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>Checkout Pagina</h1>
+      <div style={{ textAlign: "center" }}>
+        <button 
+          onClick={createCheckoutSession} 
+          disabled={loading}
+          style={{
+            backgroundColor: "#0070f3",
+            color: "white",
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: "5px",
+            fontSize: "16px",
+            cursor: "pointer",
+          }}
+        >
+          {loading ? <Spinner /> : "Start Checkout"}
+        </button>
+      </div>
+    </Layout>
   );
 }
+
