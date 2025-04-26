@@ -1,4 +1,23 @@
+# Dependency folders
 node_modules/
 .next/
 out/
+
+# Environment files
+.env
 .env.local
+.env.production
+.env.development
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+*.local
+
