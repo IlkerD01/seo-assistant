@@ -7,6 +7,7 @@ import stripe
 import os
 import jwt
 import datetime
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
@@ -19,6 +20,7 @@ JWT_SECRET = os.getenv("JWT_SECRET", "supersecret")
 stripe.api_key = STRIPE_SECRET_KEY
 
 app = FastAPI()
+CORS(app)  # <== voeg deze regel toe
 
 # CORS instellen
 app.add_middleware(
