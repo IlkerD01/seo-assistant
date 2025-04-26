@@ -7,30 +7,28 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center min-h-screen px-6">
-        <h1 className="text-4xl font-bold mb-4 text-center">
-          Welcome to SEO Assistant 🚀
-        </h1>
+      <div className="flex flex-col items-center justify-center min-h-screen px-6 bg-gradient-to-b from-blue-50 to-white">
+        <h1 className="text-5xl font-bold text-center mb-4 text-blue-700">Welcome to SEO Assistant 🚀</h1>
+        <p className="text-lg text-center mb-6 max-w-2xl">
+          Unlock premium SEO tools and boost your website's performance effortlessly with our premium API access.
+        </p>
 
-        <div className="flex justify-center mt-6">
-          <Image 
-            src="/images/seo-illustration.png" 
-            alt="SEO Tools Illustration" 
-            width={500} 
-            height={300} 
+        <div className="w-full max-w-md">
+          <Image
+            src="/images/seo-illustration.png"
+            alt="SEO Tools Illustration"
+            width={500}
+            height={300}
             priority
+            className="rounded-lg shadow-lg"
           />
         </div>
 
-        <p className="text-lg text-center mt-6 mb-8 max-w-2xl">
-          Unlock premium API features and boost your SEO performance effortlessly.
-        </p>
-
         <button
           onClick={() => router.push("/checkout")}
-          className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-lg transition"
+          className="mt-8 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition"
         >
-          Start Checkout
+          Get Started
         </button>
       </div>
     </Layout>
