@@ -1,3 +1,4 @@
+// src/pages/checkout.tsx
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import Spinner from "@/components/ui/Spinner";
@@ -5,49 +6,41 @@ import Spinner from "@/components/ui/Spinner";
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
 
-  const createCheckoutSession = async () => {
+  const startCheckout = async () => {
     setLoading(true);
     try {
-      const response = await fetch("https://seo-assistant-r44h.onrender.com/create-checkout-session", {
+      const response = await fetch("/api/create-checkout-session", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
-
-      const session = await response.json();
-
-      if (session && session.url) {
-        window.location.href = session.url; // Stripe redirect
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
       } else {
-        alert("Fout bij het aanmaken van een checkout sessie.");
+        alert("Fout bij het starten van checkout.");
         setLoading(false);
       }
     } catch (error) {
-      console.error("Fout bij starten checkout:", error);
-      alert("Fout bij verbinding met server.");
+      console.error("Checkout error:", error);
+      alert("Er ging iets fout.");
       setLoading(false);
     }
   };
 
   return (
     <Layout>
-      <h2 style={{ textAlign: "center", marginBottom: "2rem" }}>Checkout Pagina</h2>
-
-      {loading ? (
-        <Spinner />
-      ) : (
-        <div style={{ textAlign: "center" }}>
-          <button 
-            onClick={createCheckoutSession} 
-            style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
-          >
-            Start Checkout
-          </button>
-        </div>
-      )}
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-3xl font-bold mb-6">Checkout Pagina</h1>
+        <button
+          onClick={startCheckout}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md disabled:opacity-50"
+          disabled={loading}
+        >
+          {loading ? <Spinner /> : "Start Checkout"}
+        </button>
+      </div>
     </Layout>
   );
 }
+
 
 
