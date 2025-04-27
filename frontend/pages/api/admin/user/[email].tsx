@@ -1,0 +1,1 @@
+// Gebruikersspecifieke zoekopdrachten (Next.js dynamic route)
