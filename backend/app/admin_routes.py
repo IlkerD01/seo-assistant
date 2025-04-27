@@ -1,0 +1,1 @@
+# FastAPI admin routes incl. dummy /admin/stats
