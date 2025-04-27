@@ -1,56 +1,34 @@
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
-import stripe
 import os
+import stripe
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 
 load_dotenv()
 
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-FRONTEND_URL = os.getenv("FRONTEND_URL")
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-stripe.api_key = STRIPE_SECRET_KEY
+stripe_router = APIRouter()
 
-router = APIRouter()
-
-@router.post("/create-checkout-session")
+@stripe_router.post("/create-checkout-session")
 async def create_checkout_session():
     try:
         session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            mode="payment",
+            payment_method_types=['card'],
+            mode='payment',
             line_items=[{
-                "price_data": {
-                    "currency": "eur",
-                    "product_data": {
-                        "name": "Premium API Access",
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'SEO Assistant Pro Plan',
                     },
-                    "unit_amount": 5000,
+                    'unit_amount': 5000,  # $50.00
                 },
-                "quantity": 1,
+                'quantity': 1,
             }],
-            success_url=f"{FRONTEND_URL}/success",
-            cancel_url=f"{FRONTEND_URL}/cancelled",
+            success_url=os.getenv("SUCCESS_URL", "http://localhost:3000/success"),
+            cancel_url=os.getenv("CANCEL_URL", "http://localhost:3000/checkout"),
         )
-        return {"url": session.url}
+        return {"id": session.id}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/webhook")
-async def stripe_webhook(request: Request):
-    payload = await request.body()
-    sig_header = request.headers.get('stripe-signature')
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
-        )
-    except (ValueError, stripe.error.SignatureVerificationError) as e:
-        return JSONResponse(status_code=400, content={"error": str(e)})
-
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        print(f"Payment successful! Session ID: {session['id']}")
-
-    return {"status": "success"}
+        return JSONResponse(content={"error": str(e)}, status_code=500)
