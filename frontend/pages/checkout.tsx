@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
@@ -11,16 +12,15 @@ export default function Checkout() {
     const session = await response.json();
 
     if (session.id) {
-      const stripePromise = (await import('@stripe/stripe-js')).loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
-const stripe = await stripePromise;
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
+      
+      if (!stripe) {
+        alert('Stripe could not be loaded.');
+        setLoading(false);
+        return;
+      }
 
-if (!stripe) {
-  alert('Stripe kon niet geladen worden');
-  return;
-}
-
-await stripe.redirectToCheckout({ sessionId: session.id });
-
+      await stripe.redirectToCheckout({ sessionId: session.id });
     } else {
       alert('Checkout error');
     }
