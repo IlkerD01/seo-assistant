@@ -35,13 +35,17 @@
 </head>
 <body>
 
-  <div class="sidebar">
-    <h4 class="text-center text-white mb-4">Admin</h4>
-    <a href="{{ url_for('admin.admin_dashboard') }}">Dashboard</a>
-    <a href="{{ url_for('admin.admin_users') }}">Gebruikers</a>
-    <a href="{{ url_for('admin.admin_stats') }}">Statistieken</a>
-    <a href="{{ url_for('admin.admin_logout') }}">Logout</a>
-  </div>
+<div class="sidebar">
+  <h4 class="text-center text-white mb-4">Admin</h4>
+  <a href="{{ url_for('admin.admin_dashboard') }}" class="{% if request.endpoint == 'admin.admin_dashboard' %}bg-primary{% endif %}">Dashboard</a>
+  <a href="{{ url_for('admin.get_users') }}" class="{% if request.endpoint == 'admin.get_users' %}bg-primary{% endif %}">Gebruikers</a>
+  <a href="{{ url_for('admin.get_stats') }}" class="{% if request.endpoint == 'admin.get_stats' %}bg-primary{% endif %}">Statistieken</a>
+  <a href="{{ url_for('auth.logout') }}">Logout</a>
+</div>
+.sidebar a.bg-primary {
+    font-weight: bold;
+    color: white;
+}
 
   <div class="content">
     {% block content %}
