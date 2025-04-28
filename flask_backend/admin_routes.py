@@ -23,7 +23,16 @@ def admin_dashboard():
 # API: Alle gebruikers ophalen
 @admin_bp.route('/users', methods=['GET'])
 def get_users():
-    users = User.query.all()
+    users = User.query.with_entities(
+        User.id,
+        User.email,
+        User.trial_active,
+        User.trial_days_left,
+        User.trial_searches_left,
+        User.searches_done,
+        User.last_login,
+        User.subscription_status
+    ).all()
     user_list = []
     for user in users:
         user_list.append({
@@ -37,6 +46,7 @@ def get_users():
             'subscription_status': user.subscription_status
         })
     return jsonify(user_list)
+
 
 # API: Nieuwe gebruiker toevoegen
 @admin_bp.route('/users', methods=['POST'])
