@@ -12,6 +12,8 @@ class User(db.Model):
     searches_done = db.Column(db.Integer, default=0)
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
     subscription_status = db.Column(db.String(50), default='trial')
+    is_premium = db.Column(db.Boolean, default=False)   # 👈 ✅ TOEGEVOEGD voor Stripe Premium
+
 
 class SearchLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
