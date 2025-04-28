@@ -48,6 +48,24 @@ def create_app():
         return render_template('admin_dashboard.html')
 
     return app
+# Admin frontend pagina's
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    return render_template('dashboard.html')
+
+@app.route('/admin/users')
+def admin_users():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    return render_template('users.html')
+
+@app.route('/admin/stats')
+def admin_stats():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    return render_template('stats.html')
 
 # Server starten
 if __name__ == '__main__':
