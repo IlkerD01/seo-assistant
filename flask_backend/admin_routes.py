@@ -77,9 +77,12 @@ def delete_user(user_id):
 # API: Dashboard statistieken ophalen
 @admin_bp.route('/stats', methods=['GET'])
 def get_stats():
-    total_users = User.query.count()
-    total_searches = SearchLog.query.count()
-    return jsonify({'total_users': total_users, 'total_searches': total_searches})
+    total_users = db.session.query(func.count(User.id)).scalar()
+    total_searches = db.session.query(func.count(SearchLog.id)).scalar()
+    return jsonify({
+        'total_users': total_users,
+        'total_searches': total_searches
+    })
 
 # API: Exporteer zoekopdrachten
 @admin_bp.route('/export-searches', methods=['GET'])
