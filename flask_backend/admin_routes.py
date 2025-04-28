@@ -1,28 +1,25 @@
 # flask_backend/admin_routes.py
-from flask import Blueprint, jsonify, request, send_file, render_template
-from flask import Blueprint, render_template, session, redirect, url_for
-from flask import Blueprint, jsonify, request, send_file
+
+from flask import Blueprint, render_template, jsonify, request, send_file, session, redirect, url_for, flash
 from models import db, User, SearchLog
 from datetime import datetime, timedelta
 import csv
 import io
 import smtplib
 from email.mime.text import MIMEText
-from flask import flash
 import random
 import string
-from flask import session, redirect, url_for
 from sqlalchemy import func
 
-admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
+# Dashboard pagina
 @admin_bp.route('/dashboard')
-def dashboard():
+def admin_dashboard():
     if not session.get('admin_logged_in'):
-        return redirect(url_for('auth.login'))  # Zorg dat enkel ingelogde admins toegang hebben
+        return redirect(url_for('auth.login'))
     return render_template('admin_dashboard.html')
-    
+
 # API: Alle gebruikers ophalen
 @admin_bp.route('/users', methods=['GET'])
 def get_users():
@@ -56,10 +53,8 @@ def add_user():
     )
     db.session.add(new_user)
     db.session.commit()
-
     send_email_notification(new_user.email)
-
-    return jsonify({'message': 'Gebruiker toegevoegd'}), 201
+    return jsonify({'message': 'User added successfully'}), 201
 
 # API: Gebruiker verwijderen
 @admin_bp.route('/users/<int:user_id>', methods=['DELETE'])
@@ -67,7 +62,7 @@ def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
-    return jsonify({'message': 'Gebruiker verwijderd'})
+    return jsonify({'message': 'User deleted'})
 
 # API: Dashboard statistieken ophalen
 @admin_bp.route('/stats', methods=['GET'])
@@ -81,10 +76,9 @@ def get_stats():
 def export_searches():
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['Email', 'Zoekopdracht', 'Datum'])
+    writer.writerow(['Email', 'Query', 'Timestamp'])
 
     logs = SearchLog.query.join(User).add_columns(User.email, SearchLog.query_text, SearchLog.timestamp).all()
-
     for log in logs:
         writer.writerow([log.email, log.query_text, log.timestamp.strftime('%Y-%m-%d %H:%M:%S')])
 
@@ -96,15 +90,15 @@ def export_searches():
         download_name='search_logs.csv'
     )
 
-# E-mail versturen (via Gmail SMTP bv.)
+# E-mail versturen
 def send_email_notification(email):
     try:
         sender = 'jouwmail@gmail.com'
         receiver = 'jouwmail@gmail.com'
         password = 'jouw-apparaatwachtwoord'
 
-        msg = MIMEText(f'Nieuwe gebruiker toegevoegd: {email}')
-        msg['Subject'] = 'Nieuwe Gebruiker'
+        msg = MIMEText(f'New user registered: {email}')
+        msg['Subject'] = 'New User Notification'
         msg['From'] = sender
         msg['To'] = receiver
 
@@ -113,45 +107,26 @@ def send_email_notification(email):
         server.sendmail(sender, receiver, msg.as_string())
         server.quit()
     except Exception as e:
-        print(f"Fout bij verzenden e-mail: {e}")
-        
-@admin_bp.route('/admin/invite-codes', methods=['GET', 'POST'])
+        print(f"Email sending error: {e}")
+
+# Invite codes
+@admin_bp.route('/invite-codes', methods=['GET', 'POST'])
 def invite_codes():
     if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
-        # Nieuwe invite code genereren
         code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
         new_code = InviteCode(code=code)
         db.session.add(new_code)
         db.session.commit()
-        flash(f'Nieuwe invite code aangemaakt: {code}', 'success')
+        flash(f'New invite code created: {code}', 'success')
         return redirect(url_for('admin.invite_codes'))
 
     invites = InviteCode.query.all()
     return render_template('invite_codes.html', invites=invites)
 
-@admin_bp.route('/admin/dashboard')
-def admin_dashboard():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
-    return render_template('admin_dashboard.html')
-
-@admin_bp.route('/admin/stats-data')
-def admin_stats_data():
-    total_users = User.query.count()
-    premium_users = User.query.filter_by(subscription_status='premium').count()
-    trial_users = User.query.filter_by(subscription_status='trial').count()
-    total_searches = db.session.query(func.count(SearchLog.id)).scalar()
-
-    return jsonify({
-        'total_users': total_users,
-        'premium_users': premium_users,
-        'trial_users': trial_users,
-        'total_searches': total_searches
-    })
-# --- Extra API voor statistieken: nieuwe gebruikers per week ---
+# Statistieken: nieuwe gebruikers per week
 @admin_bp.route('/stats/weekly-users', methods=['GET'])
 def weekly_users():
     one_month_ago = datetime.utcnow() - timedelta(days=30)
@@ -168,14 +143,29 @@ def weekly_users():
 
     return jsonify({"labels": labels, "counts": counts})
 
-# ✨ ADD THIS ROUTE ✨
+# Statistieken: totaal users / searches
+@admin_bp.route('/stats-data')
+def admin_stats_data():
+    total_users = User.query.count()
+    premium_users = User.query.filter_by(subscription_status='premium').count()
+    trial_users = User.query.filter_by(subscription_status='trial').count()
+    total_searches = db.session.query(func.count(SearchLog.id)).scalar()
+
+    return jsonify({
+        'total_users': total_users,
+        'premium_users': premium_users,
+        'trial_users': trial_users,
+        'total_searches': total_searches
+    })
+
+# New Users Per Week (extra)
 @admin_bp.route('/new-users-per-week', methods=['GET'])
 def new_users_per_week():
     today = datetime.utcnow()
     weeks = []
     counts = []
 
-    for i in range(5, -1, -1):  # Last 6 weeks
+    for i in range(5, -1, -1):
         start_date = today - timedelta(weeks=i+1)
         end_date = today - timedelta(weeks=i)
         week_label = f"Week {start_date.isocalendar()[1]}"
@@ -186,5 +176,6 @@ def new_users_per_week():
         counts.append(count)
 
     return jsonify({'weeks': weeks, 'counts': counts})
+
 
 
