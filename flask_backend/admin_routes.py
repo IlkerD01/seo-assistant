@@ -143,6 +143,22 @@ def admin_stats_data():
         'trial_users': trial_users,
         'total_searches': total_searches
     })
+# --- Extra API voor statistieken: nieuwe gebruikers per week ---
+@admin_bp.route('/stats/weekly-users', methods=['GET'])
+def weekly_users():
+    one_month_ago = datetime.utcnow() - timedelta(days=30)
+    users = User.query.filter(User.last_login >= one_month_ago).all()
+
+    weekly_data = {}
+    for user in users:
+        week = user.last_login.strftime('%Y-W%U')
+        weekly_data[week] = weekly_data.get(week, 0) + 1
+
+    sorted_data = sorted(weekly_data.items())
+    labels = [item[0] for item in sorted_data]
+    counts = [item[1] for item in sorted_data]
+
+    return jsonify({"labels": labels, "counts": counts})
 
 
 
