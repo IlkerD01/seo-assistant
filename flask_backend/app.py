@@ -19,8 +19,6 @@ def create_app():
     app.register_blueprint(admin_bp)
 
     # --- Admin login routes --- #
-
-    # Admin login
     @app.route('/admin/login', methods=['GET', 'POST'])
     def admin_login():
         error = None
@@ -34,40 +32,34 @@ def create_app():
                 error = 'Foutieve login gegevens.'
         return render_template('admin_login.html', error=error)
 
-    # Admin logout
     @app.route('/admin/logout')
     def admin_logout():
         session.pop('admin_logged_in', None)
         return redirect(url_for('admin_login'))
 
-    # Admin dashboard (beschermd)
+    # --- Admin frontend pagina's --- #
     @app.route('/admin/dashboard')
     def admin_dashboard():
         if not session.get('admin_logged_in'):
             return redirect(url_for('admin_login'))
-        return render_template('admin_dashboard.html')
+        return render_template('dashboard.html')
+
+    @app.route('/admin/users')
+    def admin_users():
+        if not session.get('admin_logged_in'):
+            return redirect(url_for('admin_login'))
+        return render_template('users.html')
+
+    @app.route('/admin/stats')
+    def admin_stats():
+        if not session.get('admin_logged_in'):
+            return redirect(url_for('admin_login'))
+        return render_template('stats.html')
 
     return app
-# Admin frontend pagina's
-@app.route('/admin/dashboard')
-def admin_dashboard():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
-    return render_template('dashboard.html')
-
-@app.route('/admin/users')
-def admin_users():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
-    return render_template('users.html')
-
-@app.route('/admin/stats')
-def admin_stats():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
-    return render_template('stats.html')
 
 # Server starten
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True, host="0.0.0.0", port=5000)
+
