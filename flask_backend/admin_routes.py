@@ -14,7 +14,14 @@ from flask import session, redirect, url_for
 from sqlalchemy import func
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
+admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
+@admin_bp.route('/dashboard')
+def dashboard():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('auth.login'))  # Zorg dat enkel ingelogde admins toegang hebben
+    return render_template('admin_dashboard.html')
+    
 # API: Alle gebruikers ophalen
 @admin_bp.route('/users', methods=['GET'])
 def get_users():
