@@ -70,7 +70,7 @@ def create_app():
 
     @app.route('/create-checkout-session', methods=['POST'])
     def create_checkout_session():
-    try:
+        try:
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             mode='subscription',
