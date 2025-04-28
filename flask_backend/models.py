@@ -29,3 +29,16 @@ class InviteCode(db.Model):
     code = db.Column(db.String(50), unique=True, nullable=False)
     used = db.Column(db.Boolean, default=False)
     used_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+# In models.py
+
+class UserStatistics(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    total_searches = db.Column(db.Integer, default=0)
+    last_login = db.Column(db.DateTime)
+    account_type = db.Column(db.String(20), default="trial")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('statistics', uselist=False))
+
