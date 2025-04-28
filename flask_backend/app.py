@@ -85,6 +85,39 @@ def create_app():
     except Exception as e:
         return jsonify(error=str(e)), 400
 
+    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+
+    @app.route('/webhook', methods=['POST'])
+    def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get('stripe-signature')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        print('⚠️  Webhook error (invalid payload)', e)
+        return '', 400
+    except stripe.error.SignatureVerificationError as e:
+        print('⚠️  Webhook error (invalid signature)', e)
+        return '', 400
+
+    # Belangrijke event types
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        customer_email = session.get('customer_email')
+        print('✅ Payment geslaagd voor:', customer_email)
+
+        # VOORBEELD: update gebruiker naar premium (optioneel)
+        # user = User.query.filter_by(email=customer_email).first()
+        # if user:
+        #     user.is_premium = True
+        #     db.session.commit()
+        #     print(f"User {customer_email} updated to premium!")
+
+    return '', 200
+
 
 # Server starten
 if __name__ == '__main__':
