@@ -118,6 +118,10 @@ def create_app():
 
     return '', 200
 
+    @app.route('/success')
+    def payment_success():
+    return render_template('success.html')
+
 
 # Server starten
 if __name__ == '__main__':
