@@ -11,10 +11,18 @@
 <body class="bg-light">
     <div class="container mt-5">
         <h1 class="mb-4 text-center">Admin Dashboard - Gebruikers</h1>
+
+        <!-- Download CSV knop -->
         <div class="mb-3 text-end">
             <a href="/api/admin/export-searches" class="btn btn-success">Download Zoekopdrachten (CSV)</a>
         </div>
 
+        <!-- Zoekveld -->
+        <div class="mb-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="Zoek gebruiker op email, status, enz...">
+        </div>
+
+        <!-- Gebruikers tabel -->
         <div class="table-responsive">
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-dark">
@@ -58,6 +66,7 @@
 
     <!-- Dashboard Scripts -->
     <script>
+    // Laad gebruikers
     document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/admin/users')
         .then(response => response.json())
@@ -83,6 +92,7 @@
         .catch(error => console.error('Fout bij laden gebruikers:', error));
     });
 
+    // Bekijk zoekopdrachten van een gebruiker
     function viewSearches(userId) {
         fetch(`/api/admin/users/${userId}/searches`)
         .then(response => response.json())
@@ -109,6 +119,33 @@
         })
         .catch(error => console.error('Fout bij ophalen zoekopdrachten:', error));
     }
+
+    // Functie om zoeken/filteren toe te passen
+    function filterUsers() {
+        const filter = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTableBody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Debounce functie om te wachten met zoeken
+    function debounce(func, delay) {
+        let timeout;
+        return function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(func, delay);
+        };
+    }
+
+    // Start debounce op zoekveld
+    document.getElementById('searchInput').addEventListener('input', debounce(filterUsers, 300));
     </script>
 
 </body>
