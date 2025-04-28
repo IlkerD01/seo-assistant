@@ -88,33 +88,36 @@ def create_app():
     endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
 
     @app.route('/webhook', methods=['POST'])
-    def stripe_webhook():
+def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get('stripe-signature')
+    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
 
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret
         )
     except ValueError as e:
-        print('⚠️  Webhook error (invalid payload)', e)
+        print('⚠️ Invalid payload', e)
         return '', 400
     except stripe.error.SignatureVerificationError as e:
-        print('⚠️  Webhook error (invalid signature)', e)
+        print('⚠️ Invalid signature', e)
         return '', 400
 
-    # Belangrijke event types
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         customer_email = session.get('customer_email')
-        print('✅ Payment geslaagd voor:', customer_email)
+        print('✅ Payment completed for:', customer_email)
 
-        # VOORBEELD: update gebruiker naar premium (optioneel)
-        # user = User.query.filter_by(email=customer_email).first()
-        # if user:
-        #     user.is_premium = True
-        #     db.session.commit()
-        #     print(f"User {customer_email} updated to premium!")
+        # ACTIVEER PREMIUM ACCOUNT
+        from models import User  # Zorg dat je User model hebt
+        user = User.query.filter_by(email=customer_email).first()
+        if user:
+            user.is_premium = True
+            db.session.commit()
+            print(f"✅ User {customer_email} upgraded to premium.")
+        else:
+            print(f"⚠️ User with email {customer_email} not found.")
 
     return '', 200
 
