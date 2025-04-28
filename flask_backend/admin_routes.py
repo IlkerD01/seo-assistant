@@ -21,7 +21,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 def dashboard():
     if not session.get('admin_logged_in'):
         return redirect(url_for('auth.login'))  # Zorg dat enkel ingelogde admins toegang hebben
-    return render_template('admin_dashboard.html')
+    return render_template('admin.dashboard.html')
     
 # API: Alle gebruikers ophalen
 @admin_bp.route('/users', methods=['GET'])
