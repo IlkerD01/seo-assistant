@@ -1,71 +1,73 @@
 # flask_backend/billing_routes.py
 
-from flask import Blueprint, redirect, url_for, session, request
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
+import os
 import stripe
 from models import db, User
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 billing_bp = Blueprint('billing', __name__)
-
-# Stripe instellen
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-@billing_bp.route('/subscribe')
-def subscribe():
-    user_id = session.get('user_id')
-    if not user_id:
+@billing_bp.route('/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))  # User must be logged in
+
+    user = User.query.get(session['user_id'])
+    if not user:
         return redirect(url_for('auth.login'))
 
-    checkout_session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=[{
-            'price': os.getenv('STRIPE_PRICE_ID'),
-            'quantity': 1,
-        }],
-        mode='subscription',
-        success_url=url_for('billing.success', _external=True),
-        cancel_url=url_for('billing.cancel', _external=True),
-        metadata={
-            "user_id": user_id
-        }
-    )
-    return redirect(checkout_session.url)
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            mode='subscription',
+            customer_email=user.email,
+            line_items=[{
+                'price': os.getenv('STRIPE_PRICE_ID'),
+                'quantity': 1,
+            }],
+            success_url=os.getenv('SUCCESS_URL') + "?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=os.getenv('CANCEL_URL'),
+        )
+        return jsonify({'id': checkout_session.id})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @billing_bp.route('/success')
-def success():
-    return "Betaling gelukt! Je account wordt nu geüpdatet."
+def payment_success():
+    return render_template('success.html')
 
 @billing_bp.route('/cancel')
-def cancel():
-    return "Betaling geannuleerd. Probeer opnieuw."
+def payment_cancel():
+    return render_template('cancel.html')
 
 @billing_bp.route('/webhook', methods=['POST'])
 def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get('stripe-signature')
-    webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
-
-    event = None
+    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, webhook_secret
-        )
-    except Exception as e:
-        print(f'⚠️  Webhook fout: {e}')
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except ValueError as e:
+        print('⚠️ Invalid payload', e)
+        return '', 400
+    except stripe.error.SignatureVerificationError as e:
+        print('⚠️ Invalid signature', e)
         return '', 400
 
     if event['type'] == 'checkout.session.completed':
         session_obj = event['data']['object']
-        user_id = session_obj['metadata']['user_id']
+        customer_email = session_obj.get('customer_email')
 
-        # Gebruiker updaten naar subscriber
-        user = User.query.get(user_id)
-        if user:
-            user.subscription_status = 'subscriber'
-            db.session.commit()
+        if customer_email:
+            user = User.query.filter_by(email=customer_email).first()
+            if user:
+                user.subscription_status = 'premium'
+                user.is_premium = True
+                db.session.commit()
+                print(f'✅ {customer_email} upgraded to premium.')
+            else:
+                print(f'⚠️ User {customer_email} not found.')
 
     return '', 200
