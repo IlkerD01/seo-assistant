@@ -101,7 +101,23 @@ def send_email_notification(email):
         server.quit()
     except Exception as e:
         print(f"Fout bij verzenden e-mail: {e}")
+        
+@admin_bp.route('/admin/invite-codes', methods=['GET', 'POST'])
+def invite_codes():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
 
+    if request.method == 'POST':
+        # Nieuwe invite code genereren
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        new_code = InviteCode(code=code)
+        db.session.add(new_code)
+        db.session.commit()
+        flash(f'Nieuwe invite code aangemaakt: {code}', 'success')
+        return redirect(url_for('admin.invite_codes'))
+
+    invites = InviteCode.query.all()
+    return render_template('invite_codes.html', invites=invites)
 
 
 
