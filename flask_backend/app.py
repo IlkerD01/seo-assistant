@@ -5,6 +5,7 @@ from models import db
 from admin_routes import admin_bp
 from billing_routes import billing_bp
 from auth_routes import auth_bp
+from subscription_routes import subscription_bp
 
 def create_app():
     app = Flask(__name__)
@@ -23,6 +24,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(billing_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(subscription_bp)
 
     return app
 
