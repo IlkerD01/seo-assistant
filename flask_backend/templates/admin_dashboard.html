@@ -1,0 +1,66 @@
+<!-- flask_backend/templates/admin_dashboard.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Gebruikersbeheer</title>
+    <script>
+        async function loadUsers() {
+            const response = await fetch('/api/admin/users');
+            const users = await response.json();
+
+            const tableBody = document.getElementById('usersTableBody');
+            tableBody.innerHTML = '';
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td>${user.email}</td>
+                    <td>${user.trial_active ? 'Ja' : 'Nee'}</td>
+                    <td>${user.trial_days_left}</td>
+                    <td>${user.trial_searches_left}</td>
+                    <td>${user.searches_done}</td>
+                    <td>${user.last_login}</td>
+                    <td>${user.subscription_status}</td>
+                    <td><button onclick="viewSearches(${user.id})">Bekijk</button></td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function viewSearches(userId) {
+            const response = await fetch(`/api/admin/users/${userId}/searches`);
+            const searches = await response.json();
+
+            let searchTexts = searches.map(s => `${s.timestamp}: ${s.query_text}`).join('\\n');
+            alert(`Zoekopdrachten:\\n\\n${searchTexts}`);
+        }
+
+        window.onload = loadUsers;
+    </script>
+</head>
+<body>
+    <h1>Admin Dashboard - Gebruikers</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Trial Actief</th>
+                <th>Trial Dagen Over</th>
+                <th>Trial Zoekopdrachten Over</th>
+                <th>Totaal Zoekopdrachten</th>
+                <th>Laatste Login</th>
+                <th>Abonnementsstatus</th>
+                <th>Zoekopdrachten</th>
+            </tr>
+        </thead>
+        <tbody id="usersTableBody">
+            <!-- Gebruikers worden hier geladen -->
+        </tbody>
+    </table>
+</body>
+</html>
