@@ -64,25 +64,4 @@ def cleanup_old_searches():
     return jsonify({'message': f'{len(old_searches)} oude zoekopdrachten verwijderd'})
 
 
-@admin_bp.route('/api/admin/export-searches', methods=['GET'])
-def export_searches():
-    output = io.StringIO()
-    writer = csv.writer(output)
-    
-    # CSV Header
-    writer.writerow(['Gebruiker Email', 'Zoekopdracht', 'Tijdstip'])
-
-    users = User.query.all()
-    for user in users:
-        for search in user.searches:
-            writer.writerow([user.email, search.query_text, search.timestamp])
-
-    output.seek(0)
-
-    return send_file(
-        io.BytesIO(output.getvalue().encode()),
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name=f"zoekopdrachten_export_{datetime.date.today()}.csv"
-    )
 
