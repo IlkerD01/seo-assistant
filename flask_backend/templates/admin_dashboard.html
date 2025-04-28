@@ -101,64 +101,60 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-let chartInstance = null;
+let totalSearchesChart = null;
+let newUsersChart = null;
 
 async function loadDashboard() {
     try {
-        const response = await fetch('/api/admin/users');
-        const data = await response.json();
+        const usersResponse = await fetch('/api/admin/users');
+        const users = await usersResponse.json();
+
+        const statsResponse = await fetch('/api/admin/stats');
+        const stats = await statsResponse.json();
+
+        document.getElementById('totalUsers').textContent = users.length;
+        document.getElementById('totalSearches').textContent = stats.total_searches;
+
+        renderTotalSearchesChart(users);
+        renderNewUsersChart();
 
         const tableBody = document.getElementById('usersTableBody');
         tableBody.innerHTML = '';
 
-        let totalUsers = data.length;
-        let totalSearches = 0;
-        let emails = [];
-        let searches = [];
-
-        data.forEach(user => {
+        users.forEach(user => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${user.email}</td>
-                <td>${user.trial_active ? 'Ja' : 'Nee'}</td>
+                <td>${user.trial_active ? 'Yes' : 'No'}</td>
                 <td>${user.trial_days_left}</td>
                 <td>${user.trial_searches_left}</td>
                 <td>${user.searches_done}</td>
-                <td>${user.last_login || 'Nooit'}</td>
+                <td>${user.last_login || 'Never'}</td>
                 <td>${user.subscription_status}</td>
-                <td><button class="btn btn-primary btn-sm" onclick="viewSearches(${user.id})">Bekijk</button></td>
+                <td><button class="btn btn-primary btn-sm" onclick="viewSearches(${user.id})">View</button></td>
             `;
             tableBody.appendChild(row);
-
-            emails.push(user.email);
-            searches.push(user.searches_done);
-            totalSearches += user.searches_done;
         });
-
-        document.getElementById('totalUsers').textContent = totalUsers;
-        document.getElementById('totalSearches').textContent = totalSearches;
-
-        // Chart tekenen
-        renderChart(emails, searches);
-
     } catch (error) {
-        console.error('Fout bij laden dashboard gegevens:', error);
+        console.error('Error loading dashboard:', error);
     }
 }
 
-function renderChart(labels, data) {
-    const ctx = document.getElementById('searchChart').getContext('2d');
+function renderTotalSearchesChart(users) {
+    const ctx = document.getElementById('totalSearchesChart').getContext('2d');
+    const labels = users.map(user => user.email);
+    const data = users.map(user => user.searches_done);
 
-    if (chartInstance) {
-        chartInstance.destroy();
+    if (totalSearchesChart) {
+        totalSearchesChart.destroy();
     }
 
-    chartInstance = new Chart(ctx, {
+    totalSearchesChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Totaal Zoekopdrachten',
+                label: 'Total Searches',
                 data: data,
                 backgroundColor: 'rgba(54, 162, 235, 0.7)',
                 borderColor: 'rgba(54, 162, 235, 1)',
@@ -168,9 +164,38 @@ function renderChart(labels, data) {
         options: {
             responsive: true,
             scales: {
-                y: {
-                    beginAtZero: true
-                }
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+async function renderNewUsersChart() {
+    const ctx = document.getElementById('newUsersChart').getContext('2d');
+
+    const response = await fetch('/api/admin/new-users-per-week');
+    const { weeks, counts } = await response.json();
+
+    if (newUsersChart) {
+        newUsersChart.destroy();
+    }
+
+    newUsersChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: weeks,
+            datasets: [{
+                label: 'New Users Per Week',
+                data: counts,
+                fill: false,
+                borderColor: 'rgba(255, 99, 132, 0.7)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
             }
         }
     });
@@ -187,7 +212,7 @@ async function viewSearches(userId) {
         if (searches.length === 0) {
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item';
-            listItem.textContent = 'Geen zoekopdrachten gevonden.';
+            listItem.textContent = 'No searches found.';
             searchesList.appendChild(listItem);
         } else {
             searches.forEach(search => {
@@ -201,7 +226,7 @@ async function viewSearches(userId) {
         const modal = new bootstrap.Modal(document.getElementById('searchesModal'));
         modal.show();
     } catch (error) {
-        console.error('Fout bij ophalen zoekopdrachten:', error);
+        console.error('Error loading searches:', error);
     }
 }
 
@@ -228,12 +253,10 @@ function debounce(func, delay) {
 }
 
 document.getElementById('searchInput').addEventListener('input', debounce(filterUsers, 300));
-
-// Realtime refresh elke 30 seconden
 setInterval(loadDashboard, 30000);
-
 document.addEventListener('DOMContentLoaded', loadDashboard);
 </script>
+
 
 </body>
 </html>
