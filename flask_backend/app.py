@@ -2,6 +2,9 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from models import db
 from admin_routes import admin_bp
 from billing_routes import billing_bp
+import stripe
+import os
+from flask import Flask, request, jsonify, redirect, abort
 
 def create_app():
     app = Flask(__name__)
@@ -12,6 +15,8 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
+    
+    stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
     with app.app_context():
         db.create_all()
@@ -62,6 +67,24 @@ def create_app():
         return render_template('users.html')
 
     return app
+
+    @app.route('/create-checkout-session', methods=['POST'])
+    def create_checkout_session():
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            mode='subscription',
+            line_items=[{
+                'price': os.getenv('STRIPE_PRICE_ID'),
+                'quantity': 1,
+            }],
+            success_url=os.getenv('SUCCESS_URL') + "?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=os.getenv('CANCEL_URL'),
+        )
+        return jsonify({'id': session.id})
+    except Exception as e:
+        return jsonify(error=str(e)), 400
+
 
 # Server starten
 if __name__ == '__main__':
