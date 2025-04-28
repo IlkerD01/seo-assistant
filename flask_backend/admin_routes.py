@@ -122,5 +122,25 @@ def invite_codes():
     invites = InviteCode.query.all()
     return render_template('invite_codes.html', invites=invites)
 
+@admin_bp.route('/admin/dashboard')
+def admin_dashboard():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    return render_template('admin_dashboard.html')
+
+@admin_bp.route('/admin/stats-data')
+def admin_stats_data():
+    total_users = User.query.count()
+    premium_users = User.query.filter_by(subscription_status='premium').count()
+    trial_users = User.query.filter_by(subscription_status='trial').count()
+    total_searches = db.session.query(func.count(SearchLog.id)).scalar()
+
+    return jsonify({
+        'total_users': total_users,
+        'premium_users': premium_users,
+        'trial_users': trial_users,
+        'total_searches': total_searches
+    })
+
 
 
