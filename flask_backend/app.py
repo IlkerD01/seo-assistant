@@ -1,7 +1,6 @@
-from flask import Flask
+from flask import Flask, render_template
 from models import db
 from admin_routes import admin_bp
-from flask import render_template
 
 def create_app():
     app = Flask(__name__)
@@ -16,12 +15,13 @@ def create_app():
 
     app.register_blueprint(admin_bp)
 
+    # 👉 HIER: gewone route toevoegen voor frontend dashboard
+    @app.route('/admin/dashboard')
+    def admin_dashboard():
+        return render_template('admin_dashboard.html')
+
     return app
-    
-@app.route('/admin/dashboard')
-def admin_dashboard():
-    return render_template('admin_dashboard.html')
-    
+
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True, host="0.0.0.0", port=5000)
