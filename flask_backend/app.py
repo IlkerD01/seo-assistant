@@ -44,12 +44,6 @@ def create_app():
             return redirect(url_for('admin_login'))
         return render_template('dashboard.html')
 
-    @app.route('/admin/users')
-    def admin_users():
-        if not session.get('admin_logged_in'):
-            return redirect(url_for('admin_login'))
-        return render_template('users.html')
-
     @app.route('/admin/stats')
     def admin_stats():
         if not session.get('admin_logged_in'):
