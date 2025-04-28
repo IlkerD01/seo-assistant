@@ -18,6 +18,10 @@ def create_app():
     # Register blueprints
     app.register_blueprint(admin_bp)
 
+    from auth_routes import auth_bp
+    app.register_blueprint(auth_bp)
+
+
     # --- Admin login routes --- #
     @app.route('/admin/login', methods=['GET', 'POST'])
     def admin_login():
