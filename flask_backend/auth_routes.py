@@ -61,3 +61,33 @@ def login():
 def logout():
     session.pop('user_id', None)
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        invite_code_input = request.form['invite_code']
+
+        # Controleer invite code
+        invite = InviteCode.query.filter_by(code=invite_code_input, used=False).first()
+        if not invite:
+            flash('Invalid or already used invite code.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        # Maak nieuwe gebruiker aan
+        hashed_password = generate_password_hash(password)
+        new_user = User(email=email, password=hashed_password)
+        db.session.add(new_user)
+
+        # Markeer invite als gebruikt
+        invite.used = True
+        invite.used_by = new_user.id
+
+        db.session.commit()
+
+        flash('Account created successfully!', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('signup.html')
+
