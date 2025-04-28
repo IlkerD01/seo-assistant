@@ -89,6 +89,19 @@
 
     <!-- Dashboard Scripts -->
     <script>
+function updateStats() {
+    fetch('/api/admin/stats')
+    .then(response => response.json())
+    .then(stats => {
+        document.getElementById('totalUsers').textContent = stats.total_users;
+        document.getElementById('totalSearches').textContent = stats.total_searches;
+    });
+}
+
+setInterval(updateStats, 60000); // elke 60 sec
+document.addEventListener('DOMContentLoaded', updateStats);
+</script>
+    
     document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/admin/users')
         .then(response => response.json())
