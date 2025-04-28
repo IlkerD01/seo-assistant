@@ -31,6 +31,7 @@ def create_invite():
 
     flash('Invite code created!', 'success')
     return redirect(url_for('invite.admin_invites'))
+    flash('Invite code created successfully!', 'success')
 
 @invite_bp.route('/admin/invites/delete/<int:invite_id>', methods=['POST'])
 def delete_invite(invite_id):
@@ -43,3 +44,6 @@ def delete_invite(invite_id):
 
     flash('Invite code deleted.', 'success')
     return redirect(url_for('invite.admin_invites'))
+    flash('Invite code deleted successfully!', 'success')
+
+
