@@ -160,5 +160,23 @@ def weekly_users():
 
     return jsonify({"labels": labels, "counts": counts})
 
+# ✨ ADD THIS ROUTE ✨
+@admin_bp.route('/new-users-per-week', methods=['GET'])
+def new_users_per_week():
+    today = datetime.utcnow()
+    weeks = []
+    counts = []
+
+    for i in range(5, -1, -1):  # Last 6 weeks
+        start_date = today - timedelta(weeks=i+1)
+        end_date = today - timedelta(weeks=i)
+        week_label = f"Week {start_date.isocalendar()[1]}"
+
+        count = User.query.filter(User.last_login >= start_date, User.last_login < end_date).count()
+
+        weeks.append(week_label)
+        counts.append(count)
+
+    return jsonify({'weeks': weeks, 'counts': counts})
 
 
