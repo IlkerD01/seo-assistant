@@ -1,0 +1,58 @@
+<!-- templates/users.html -->
+
+{% extends "admin_layout.html" %}
+
+{% block content %}
+<h1 class="mb-4">Gebruikers</h1>
+
+<div class="mb-3">
+    <input type="text" id="searchInput" class="form-control" placeholder="Zoek gebruiker...">
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead class="table-dark">
+      <tr>
+        <th>Email</th>
+        <th>Trial Actief</th>
+        <th>Trial Dagen Over</th>
+        <th>Laatste Login</th>
+        <th>Zoekopdrachten</th>
+      </tr>
+    </thead>
+    <tbody id="usersTableBody">
+      <!-- Gebruikers komen hier -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/admin/users')
+    .then(response => response.json())
+    .then(users => {
+        const tableBody = document.getElementById('usersTableBody');
+        tableBody.innerHTML = '';
+
+        users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user.email}</td>
+                <td>${user.trial_active ? 'Ja' : 'Nee'}</td>
+                <td>${user.trial_days_left}</td>
+                <td>${user.last_login || 'Nooit'}</td>
+                <td>${user.searches_done}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    });
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll('#usersTableBody tr').forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endblock %}
