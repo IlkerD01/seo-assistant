@@ -55,6 +55,11 @@ def create_app():
         if not session.get('admin_logged_in'):
             return redirect(url_for('admin_login'))
         return render_template('stats.html')
+    @app.route('/admin/users')
+    def admin_users():
+        if not session.get('admin_logged_in'):
+            return redirect(url_for('admin_login'))
+        return render_template('users.html')
 
     return app
 
