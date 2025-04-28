@@ -1,11 +1,16 @@
+# flask_backend/admin_routes.py
+
 from flask import Blueprint, jsonify, request, send_file
 from models import db, User, SearchLog
 from datetime import datetime, timedelta
 import csv
 import io
+import smtplib
+from email.mime.text import MIMEText
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
+# API: Alle gebruikers ophalen
 @admin_bp.route('/users', methods=['GET'])
 def get_users():
     users = User.query.all()
@@ -23,17 +28,42 @@ def get_users():
         })
     return jsonify(user_list)
 
-@admin_bp.route('/users/<int:user_id>/searches', methods=['GET'])
-def get_user_searches(user_id):
-    searches = SearchLog.query.filter_by(user_id=user_id).all()
-    search_list = []
-    for search in searches:
-        search_list.append({
-            'query_text': search.query_text,
-            'timestamp': search.timestamp.strftime('%Y-%m-%d %H:%M:%S')
-        })
-    return jsonify(search_list)
+# API: Nieuwe gebruiker toevoegen
+@admin_bp.route('/users', methods=['POST'])
+def add_user():
+    data = request.get_json()
+    new_user = User(
+        email=data['email'],
+        trial_active=data['trial_active'],
+        trial_days_left=data['trial_days_left'],
+        trial_searches_left=data['trial_searches_left'],
+        searches_done=0,
+        last_login=datetime.utcnow(),
+        subscription_status=data['subscription_status']
+    )
+    db.session.add(new_user)
+    db.session.commit()
 
+    send_email_notification(new_user.email)
+
+    return jsonify({'message': 'Gebruiker toegevoegd'}), 201
+
+# API: Gebruiker verwijderen
+@admin_bp.route('/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'message': 'Gebruiker verwijderd'})
+
+# API: Dashboard statistieken ophalen
+@admin_bp.route('/stats', methods=['GET'])
+def get_stats():
+    total_users = User.query.count()
+    total_searches = SearchLog.query.count()
+    return jsonify({'total_users': total_users, 'total_searches': total_searches})
+
+# API: Exporteer zoekopdrachten
 @admin_bp.route('/export-searches', methods=['GET'])
 def export_searches():
     output = io.StringIO()
@@ -46,7 +76,6 @@ def export_searches():
         writer.writerow([log.email, log.query_text, log.timestamp.strftime('%Y-%m-%d %H:%M:%S')])
 
     output.seek(0)
-
     return send_file(
         io.BytesIO(output.getvalue().encode()),
         mimetype='text/csv',
@@ -54,61 +83,25 @@ def export_searches():
         download_name='search_logs.csv'
     )
 
-@admin_bp.route('/cleanup-old-searches', methods=['POST'])
-def cleanup_old_searches():
-    ninety_days_ago = datetime.utcnow() - timedelta(days=90)
-    old_searches = SearchLog.query.filter(SearchLog.timestamp < ninety_days_ago).all()
-    for search in old_searches:
-        db.session.delete(search)
-    db.session.commit()
-    return jsonify({'message': f'{len(old_searches)} oude zoekopdrachten verwijderd'})
+# E-mail versturen (via Gmail SMTP bv.)
+def send_email_notification(email):
+    try:
+        sender = 'jouwmail@gmail.com'
+        receiver = 'jouwmail@gmail.com'
+        password = 'jouw-apparaatwachtwoord'
 
-# API voor admin dashboard statistieken
-@admin_bp.route('/stats', methods=['GET'])
-def get_stats():
-    total_users = User.query.count()
-    total_searches = SearchLog.query.count()
+        msg = MIMEText(f'Nieuwe gebruiker toegevoegd: {email}')
+        msg['Subject'] = 'Nieuwe Gebruiker'
+        msg['From'] = sender
+        msg['To'] = receiver
 
-    # Simuleer activiteit laatste 7 dagen
-    activity = {
-        'days': [],
-        'counts': []
-    }
-    today = datetime.utcnow()
-    for i in range(7):
-        day = today - timedelta(days=i)
-        count = SearchLog.query.filter(
-            SearchLog.timestamp >= day.replace(hour=0, minute=0, second=0),
-            SearchLog.timestamp <= day.replace(hour=23, minute=59, second=59)
-        ).count()
-        activity['days'].insert(0, day.strftime('%d-%m'))
-        activity['counts'].insert(0, count)
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(sender, password)
+        server.sendmail(sender, receiver, msg.as_string())
+        server.quit()
+    except Exception as e:
+        print(f"Fout bij verzenden e-mail: {e}")
 
-    return jsonify({
-        'total_users': total_users,
-        'total_searches': total_searches,
-        'activity': activity
-    })
-
-# API voor top 5 actieve gebruikers
-@admin_bp.route('/top-users', methods=['GET'])
-def get_top_users():
-    users = User.query.all()
-    user_stats = []
-
-    for user in users:
-        user_stats.append({
-            'email': user.email,
-            'search_count': len(user.searches)
-        })
-
-    # Sorteer op zoekopdrachten
-    sorted_users = sorted(user_stats, key=lambda x: x['search_count'], reverse=True)[:5]
-
-    return jsonify({
-        'users': [u['email'] for u in sorted_users],
-        'search_counts': [u['search_count'] for u in sorted_users]
-    })
 
 
 
