@@ -1,0 +1,61 @@
+<!-- templates/dashboard.html -->
+
+{% extends "admin_layout.html" %}
+
+{% block content %}
+<h1 class="mb-4">Dashboard</h1>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="card text-bg-primary mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Aantal Gebruikers</h5>
+        <p class="card-text" id="userCount">0</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-bg-success mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Totaal Zoekopdrachten</h5>
+        <p class="card-text" id="searchCount">0</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart -->
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Activiteit</h5>
+    <canvas id="activityChart" height="100"></canvas>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/admin/stats')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('userCount').textContent = data.total_users;
+        document.getElementById('searchCount').textContent = data.total_searches;
+
+        const ctx = document.getElementById('activityChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.activity.days,
+                datasets: [{
+                    label: 'Zoekopdrachten',
+                    data: data.activity.counts,
+                    borderColor: 'blue',
+                    backgroundColor: 'lightblue',
+                    fill: true,
+                }]
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
