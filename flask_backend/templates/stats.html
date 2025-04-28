@@ -1,0 +1,36 @@
+<!-- templates/stats.html -->
+
+{% extends "admin_layout.html" %}
+
+{% block content %}
+<h1 class="mb-4">Statistieken</h1>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Top 5 Actieve Gebruikers</h5>
+    <canvas id="topUsersChart" height="100"></canvas>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/admin/top-users')
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('topUsersChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.users,
+                datasets: [{
+                    label: 'Zoekopdrachten',
+                    data: data.search_counts,
+                    backgroundColor: 'orange'
+                }]
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
