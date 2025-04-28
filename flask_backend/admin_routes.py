@@ -63,5 +63,52 @@ def cleanup_old_searches():
     db.session.commit()
     return jsonify({'message': f'{len(old_searches)} oude zoekopdrachten verwijderd'})
 
+# API voor admin dashboard statistieken
+@admin_bp.route('/stats', methods=['GET'])
+def get_stats():
+    total_users = User.query.count()
+    total_searches = SearchLog.query.count()
+
+    # Simuleer activiteit laatste 7 dagen
+    activity = {
+        'days': [],
+        'counts': []
+    }
+    today = datetime.utcnow()
+    for i in range(7):
+        day = today - timedelta(days=i)
+        count = SearchLog.query.filter(
+            SearchLog.timestamp >= day.replace(hour=0, minute=0, second=0),
+            SearchLog.timestamp <= day.replace(hour=23, minute=59, second=59)
+        ).count()
+        activity['days'].insert(0, day.strftime('%d-%m'))
+        activity['counts'].insert(0, count)
+
+    return jsonify({
+        'total_users': total_users,
+        'total_searches': total_searches,
+        'activity': activity
+    })
+
+# API voor top 5 actieve gebruikers
+@admin_bp.route('/top-users', methods=['GET'])
+def get_top_users():
+    users = User.query.all()
+    user_stats = []
+
+    for user in users:
+        user_stats.append({
+            'email': user.email,
+            'search_count': len(user.searches)
+        })
+
+    # Sorteer op zoekopdrachten
+    sorted_users = sorted(user_stats, key=lambda x: x['search_count'], reverse=True)[:5]
+
+    return jsonify({
+        'users': [u['email'] for u in sorted_users],
+        'search_counts': [u['search_count'] for u in sorted_users]
+    })
+
 
 
