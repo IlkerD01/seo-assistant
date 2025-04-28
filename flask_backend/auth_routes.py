@@ -1,30 +1,41 @@
 # flask_backend/auth_routes.py
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, InviteCode
 from datetime import datetime
 
 auth_bp = Blueprint('auth', __name__)
 
+# --- REGISTREREN ROUTE --- #
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
+    error = None
     if request.method == 'POST':
         email = request.form['email']
-        password = request.form['password']  # (optioneel, kun je skippen)
-        invite_code = request.form['invite_code']
+        password = request.form['password']
+        invite_code_input = request.form['invite_code']
 
-        # Invite check
-        invite = InviteCode.query.filter_by(code=invite_code, used=False).first()
+        # Controleer invite code
+        invite = InviteCode.query.filter_by(code=invite_code_input, used=False).first()
         if not invite:
-            flash('Ongeldige of gebruikte invite code.', 'danger')
-            return redirect(url_for('auth.register'))
+            error = "Invalid or already used invite code."
+            return render_template('register.html', error=error)
 
-        # Maak gebruiker aan
+        # Check of gebruiker al bestaat
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            error = "An account with this email already exists."
+            return render_template('register.html', error=error)
+
+        # Maak nieuwe gebruiker aan
+        hashed_password = generate_password_hash(password)
         new_user = User(
             email=email,
+            password=hashed_password,
             trial_active=True,
-            trial_days_left=7,  # Bijvoorbeeld 7 dagen gratis trial
-            trial_searches_left=3,  # 3 gratis zoekopdrachten
+            trial_days_left=7,  # Bijv. 7 dagen trial
+            trial_searches_left=3,
             subscription_status='trial',
             last_login=datetime.utcnow(),
             searches_done=0
@@ -32,32 +43,39 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        # Markeer invite als gebruikt
+        # Markeer invite code als gebruikt
         invite.used = True
         invite.used_by = new_user.id
         db.session.commit()
 
-        flash('Registratie gelukt. Log nu in.', 'success')
-        return redirect(url_for('auth.login'))
+        session['user_email'] = new_user.email
+        flash('Registration successful! You are now logged in.', 'success')
+        return redirect(url_for('subscription.account'))
 
-    return render_template('register.html')
+    return render_template('register.html', error=error)
 
+# --- LOGIN ROUTE --- #
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
         email = request.form['email']
+        password = request.form['password']
+
         user = User.query.filter_by(email=email).first()
 
-        if user:
-            session['user_id'] = user.id
-            return redirect(url_for('admin_dashboard'))  # Of een gebruiker dashboard later
+        if user and check_password_hash(user.password, password):
+            session['user_email'] = user.email
+            flash('Login successful.', 'success')
+            return redirect(url_for('subscription.account'))
+        else:
+            error = "Incorrect email or password."
 
-        flash('Gebruiker niet gevonden.', 'danger')
-        return redirect(url_for('auth.login'))
+    return render_template('login.html', error=error)
 
-    return render_template('login.html')
-
+# --- LOGOUT ROUTE --- #
 @auth_bp.route('/logout')
 def logout():
-    session.pop('user_id', None)
+    session.pop('user_email', None)
+    flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
