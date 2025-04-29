@@ -70,7 +70,7 @@ def login():
         flash('Login successful.', 'success')
         return redirect(url_for('admin.admin_dashboard'))  # ✅ Correct pad
 
-        else:
+    else:
             error = "Incorrect email or password."
 
     return render_template('admin_login.html', error=error)
