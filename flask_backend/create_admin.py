@@ -31,5 +31,5 @@ def create_admin(email, password):
 
 # === Vul hier je admin gegevens in ===
 if __name__ == "__main__":
-    create_admin("admin@example.com", "1234")  # 👈 pas dit aan naar jouw e-mailadres en wachtwoord
+    create_admin("idem.85@hotmail.com", "0495")  # 👈 pas dit aan naar jouw e-mailadres en wachtwoord
 
