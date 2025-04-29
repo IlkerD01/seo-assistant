@@ -10,10 +10,6 @@ from flask_backend.subscription_routes import subscription_bp
 def create_app():
     app = Flask(__name__)
 
-4@app.route('/')
-def index():
-    return redirect(url_for('auth.login'))  # werkt → /auth/admin-login
-
 
 
     # Belangrijk: Geheime sleutels en database configuratie
