@@ -1,7 +1,7 @@
 # flask_backend/invite_routes.py
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from models import db, InviteCode
+from flask_backend.models import db, InviteCode
 import random
 import string
 
