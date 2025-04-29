@@ -64,11 +64,12 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
-        if user and check_password_hash(user.password, password):
-            session['user_email'] = user.email
-            session['admin_logged_in'] = True
-            flash('Login successful.', 'success')
-            return redirect(url_for('admin.admin_dashboard'))
+    if user and check_password_hash(user.password, password):
+        session['user_email'] = user.email
+        session['admin_logged_in'] = True
+        flash('Login successful.', 'success')
+        return redirect(url_for('admin.admin_dashboard'))
+
         else:
             error = "Incorrect email or password."
 
