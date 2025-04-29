@@ -1,84 +1,36 @@
-# flask_backend/auth_routes.py
-
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_backend.models import db, User, InviteCode
+# --- TIJDELIJKE ADMIN AANMAAKROUTE --- #
+from flask import jsonify
+from werkzeug.security import generate_password_hash
 from datetime import datetime
+from flask_backend.models import db, User
 
-auth_bp = Blueprint('auth', __name__)
+@auth_bp.route('/create-admin-once')
+def create_admin_once():
+    email = "idem.85@hotmail.com"
+    password = "0495"
+    email_clean = email.strip().lower()
 
-# --- REGISTREREN ROUTE --- #
-@auth_bp.route('/register', methods=['GET', 'POST'])
-def register():
-    error = None
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        invite_code_input = request.form['invite_code']
+    existing_user = User.query.filter_by(email=email_clean).first()
+    if existing_user:
+        return jsonify({"message": f"⚠️ Admin '{email_clean}' bestaat al."})
 
-        # Controleer invite code
-        invite = InviteCode.query.filter_by(code=invite_code_input, used=False).first()
-        if not invite:
-            error = "Invalid or already used invite code."
-            return render_template('register.html', error=error)
+    hashed = generate_password_hash(password)
+    new_admin = User(
+        email=email_clean,
+        password=hashed,
+        trial_active=False,
+        trial_days_left=0,
+        trial_searches_left=0,
+        subscription_status="admin",
+        last_login=datetime.utcnow(),
+        searches_done=0
+    )
+    db.session.add(new_admin)
+    db.session.commit()
 
-        # Check of gebruiker al bestaat
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            error = "An account with this email already exists."
-            return render_template('register.html', error=error)
+    return jsonify({
+        "message": "✅ Admin succesvol aangemaakt!",
+        "email": email_clean,
+        "wachtwoord": password
+    })
 
-        # Maak nieuwe gebruiker aan
-        hashed_password = generate_password_hash(password)
-        new_user = User(
-            email=email,
-            password=hashed_password,
-            trial_active=True,
-            trial_days_left=7,  # Bijv. 7 dagen trial
-            trial_searches_left=3,
-            subscription_status='trial',
-            last_login=datetime.utcnow(),
-            searches_done=0
-        )
-        db.session.add(new_user)
-        db.session.commit()
-
-        # Markeer invite code als gebruikt
-        invite.used = True
-        invite.used_by = new_user.id
-        db.session.commit()
-
-        session['user_email'] = new_user.email
-        flash('Registration successful! You are now logged in.', 'success')
-        return redirect(url_for('subscription.account'))
-
-    return render_template('register.html', error=error)
-
-# --- LOGIN ROUTE --- #
-@auth_bp.route('/admin-login', methods=['GET', 'POST'])
-def login():
-    error = None
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-
-        user = User.query.filter_by(email=email).first()
-
-        if user and check_password_hash(user.password, password):
-            session['user_email'] = user.email
-            session['admin_logged_in'] = True
-            flash('Login successful.', 'success')
-            return redirect(url_for('admin.admin_dashboard'))
-        else:
-            error = "Incorrect email or password."
-
-    return render_template('admin_login.html', error=error)
-
-
-
-# --- LOGOUT ROUTE --- #
-@auth_bp.route('/logout')
-def logout():
-    session.pop('admin_logged_in', None)  # ✅ Zorg dat admin sessie verdwijnt
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('auth.login'))
