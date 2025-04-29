@@ -3,7 +3,7 @@
 import stripe
 import os
 from flask import request, jsonify, render_template
-from models import db, User
+from flask_backend.models import db, User
 from flask_backend.app import create_app
 
 app = create_app()
