@@ -55,7 +55,7 @@ def register():
     return render_template('register.html', error=error)
 
 # --- LOGIN ROUTE --- #
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/admin-login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
