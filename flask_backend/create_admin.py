@@ -6,7 +6,7 @@ from flask_backend import app  # Zorg dat dit je create_app-functie aanroept
 # Start Flask app context
 flask_app = app.create_app()
 with flask_app.app_context():
-    email = "idem.85@hotmail.com   "
+    email = "idem.85@hotmail.com"
     password = "0495"
     hashed_password = generate_password_hash(password)
 
