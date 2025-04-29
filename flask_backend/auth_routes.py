@@ -64,16 +64,16 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
-    if user and check_password_hash(user.password, password):
-        session['user_email'] = user.email
-        session['admin_logged_in'] = True  # ✅ Belangrijk!
-        flash('Login successful.', 'success')
-        return redirect(url_for('admin.admin_dashboard'))  # ✅ Correct pad
-
-    else:
+        if user and check_password_hash(user.password, password):
+            session['user_email'] = user.email
+            session['admin_logged_in'] = True
+            flash('Login successful.', 'success')
+            return redirect(url_for('admin.admin_dashboard'))
+        else:
             error = "Incorrect email or password."
 
     return render_template('admin_login.html', error=error)
+
 
 # --- LOGOUT ROUTE --- #
 @auth_bp.route('/logout')
