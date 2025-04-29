@@ -3,7 +3,7 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
 import os
 import stripe
-from models import db, User
+from flask_backend.models import db, User
 
 billing_bp = Blueprint('billing', __name__)
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
