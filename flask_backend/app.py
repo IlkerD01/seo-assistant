@@ -2,10 +2,10 @@
 
 from flask import Flask
 from flask_backend.models import db
-from admin_routes import admin_bp
-from billing_routes import billing_bp
-from auth_routes import auth_bp
-from subscription_routes import subscription_bp
+from flask_backend.admin_routes import admin_bp
+from flask_backend.billing_routes import billing_bp
+from flask_backend.auth_routes import auth_bp
+from flask_backend.subscription_routes import subscription_bp
 
 def create_app():
     app = Flask(__name__)
