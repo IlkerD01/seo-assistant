@@ -71,7 +71,7 @@ def login():
         else:
             error = "Incorrect email or password."
 
-    return render_template('login.html', error=error)
+    return render_template('admin_login.html', error=error)
 
 # --- LOGOUT ROUTE --- #
 @auth_bp.route('/logout')
