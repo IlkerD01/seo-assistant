@@ -28,6 +28,10 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(subscription_bp)
 
+@app.route('/')
+def index():
+    return redirect('/auth/admin-login')
+
     return app
 
 # Server starten
