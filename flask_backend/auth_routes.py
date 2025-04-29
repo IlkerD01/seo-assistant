@@ -64,10 +64,12 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
-        if user and check_password_hash(user.password, password):
-            session['user_email'] = user.email
-            flash('Login successful.', 'success')
-            return redirect(url_for('subscription.account'))
+    if user and check_password_hash(user.password, password):
+        session['user_email'] = user.email
+        session['admin_logged_in'] = True  # ✅ Belangrijk!
+        flash('Login successful.', 'success')
+        return redirect(url_for('admin.admin_dashboard'))  # ✅ Correct pad
+
         else:
             error = "Incorrect email or password."
 
@@ -76,6 +78,6 @@ def login():
 # --- LOGOUT ROUTE --- #
 @auth_bp.route('/logout')
 def logout():
-    session.pop('user_email', None)
+    session.pop('admin_logged_in', None)  # ✅ Zorg dat admin sessie verdwijnt
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
