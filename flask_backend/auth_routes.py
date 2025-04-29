@@ -1,9 +1,11 @@
-# --- TIJDELIJKE ADMIN AANMAAKROUTE --- #
-from flask import jsonify
-from werkzeug.security import generate_password_hash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_backend.models import db, User, InviteCode
 from datetime import datetime
-from flask_backend.models import db, User
 
+auth_bp = Blueprint('auth', __name__)  # 👈 Dit moet eerst komen
+
+# --- TIJDELIJKE ADMIN AANMAAKROUTE --- #
 @auth_bp.route('/create-admin-once')
 def create_admin_once():
     email = "idem.85@hotmail.com"
@@ -33,4 +35,3 @@ def create_admin_once():
         "email": email_clean,
         "wachtwoord": password
     })
-
