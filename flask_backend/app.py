@@ -1,7 +1,7 @@
 # app.py
 
 from flask import Flask
-from models import db
+from flask_backend.models import db
 from admin_routes import admin_bp
 from billing_routes import billing_bp
 from auth_routes import auth_bp
