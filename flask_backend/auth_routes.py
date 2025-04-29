@@ -8,7 +8,7 @@ from datetime import datetime
 auth_bp = Blueprint('auth', __name__)
 
 # --- REGISTREREN ROUTE --- #
-@auth_bp.route('/register', methods=['GET', 'POST'])
+@auth_bp.route('admin/register', methods=['GET', 'POST'])
 def register():
     error = None
     if request.method == 'POST':
