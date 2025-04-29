@@ -10,6 +10,10 @@ from flask_backend.subscription_routes import subscription_bp
 def create_app():
     app = Flask(__name__)
 
+@app.route('/')
+def index():
+    return redirect(url_for('auth.login'))
+
     # Belangrijk: Geheime sleutels en database configuratie
     app.config['SECRET_KEY'] = 'jouw-supergeheime-sleutel-zet-hier-iets-sterk'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
