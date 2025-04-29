@@ -1,7 +1,7 @@
 # subscription_routes.py
 
 from flask import Blueprint, render_template, session, redirect, url_for
-from models import User
+from flask_backend.models import User
 from flask import current_app as app
 from flask import request
 import os
