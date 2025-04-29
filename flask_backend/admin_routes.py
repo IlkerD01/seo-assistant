@@ -23,7 +23,7 @@ def admin_dashboard():
 # API: Alle gebruikers ophalen
 @admin_bp.route('/users', methods=['GET'])
 def get_users():
-    users = User.query.with_entities(
+    users = none.query.with_entities(
         User.id,
         User.email,
         User.trial_active,
