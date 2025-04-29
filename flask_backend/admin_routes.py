@@ -1,7 +1,7 @@
 # flask_backend/admin_routes.py
 
 from flask import Blueprint, render_template, jsonify, request, send_file, session, redirect, url_for, flash
-from models import db, User, SearchLog
+from flask_backend.models import User, SearchLog
 from datetime import datetime, timedelta
 import csv
 import io
