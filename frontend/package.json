@@ -9,9 +9,15 @@
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.2.0",
+<<<<<<< HEAD
     "next": "^14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+=======
+    "next": "14.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+>>>>>>> 69dbe4075ed295c301b2dd322bf27eb904ac7bab
     "stripe": "^12.0.0"
   },
   "devDependencies": {
